@@ -1,9 +1,21 @@
 package com.sankuai.inf.leaf.segment.model;
 
 public class LeafAlloc {
+    /**
+     * 业务key 对应biz_tag
+     */
     private String key;
+    /**
+     * 对应最大id
+     */
     private long maxId;
+    /**
+     * 对应步长
+     */
     private int step;
+    /**
+     * 对应更新时间
+     */
     private String updateTime;
 
     public String getKey() {

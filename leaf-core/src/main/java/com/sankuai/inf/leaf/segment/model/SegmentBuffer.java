@@ -8,6 +8,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 双buffer
+ * 双buffer的方式，保证无论何时DB出现问题，都能有一个Buffer的号段可以正常对外提供服务
+ * 只要DB在一个Buffer的下发周期内恢复，就不会影响整个Leaf的可用性
  */
 public class SegmentBuffer {
     private String key;
@@ -18,11 +20,13 @@ public class SegmentBuffer {
     private final AtomicBoolean threadRunning; //线程是否在运行中
     private final ReadWriteLock lock;
 
-    private volatile int step;
-    private volatile int minStep;
-    private volatile long updateTimestamp;
+    private volatile int step; // 动态调整的step
+    private volatile int minStep; // 最小step
+    private volatile long updateTimestamp; // 更新时间戳
 
     public SegmentBuffer() {
+        // 可以看见 SegmentBuffer 中包含了一个号段数组，包含两个 Segment，每一次只用一个，另一个异步的准备好，
+        // 等到当前号段用完，就可以切换另一个，像Young GC的两个Survivor区倒来倒去的思想。我们再来看一下号段 Segment 的定义。
         segments = new Segment[]{new Segment(this), new Segment(this)};
         currentPos = 0;
         nextReady = false;
